@@ -54,6 +54,16 @@ export default class AutoNoteMover extends Plugin {
 				const settingFolder = folderTagPattern[i].folder;
 				const settingTag = folderTagPattern[i].tag;
 				const settingPattern = folderTagPattern[i].pattern;
+				const settingSourceFolder = folderTagPattern[i].source_folder;
+
+				// Source folder filter check - if source folder is specified, only apply rule to notes in that folder
+				if (settingSourceFolder && settingSourceFolder.trim() !== '') {
+					const normalizedSourceFolder = normalizePath(settingSourceFolder.trim());
+					if (file.parent.path !== normalizedSourceFolder) {
+						continue; // Skip this rule if the note is not in the specified source folder
+					}
+				}
+
 				// Tag check
 				if (!settingPattern) {
 					if (!this.settings.use_regex_to_check_for_tags) {

@@ -9,6 +9,7 @@ export interface FolderTagPattern {
 	folder: string;
 	tag: string;
 	pattern: string;
+	source_folder: string;
 }
 
 export interface ExcludedFolder {
@@ -28,7 +29,7 @@ export const DEFAULT_SETTINGS: AutoNoteMoverSettings = {
 	trigger_auto_manual: 'Automatic',
 	use_regex_to_check_for_tags: false,
 	statusBar_trigger_indicator: true,
-	folder_tag_pattern: [{ folder: '', tag: '', pattern: '' }],
+	folder_tag_pattern: [{ folder: '', tag: '', pattern: '', source_folder: '' }],
 	use_regex_to_check_for_excluded_folder: false,
 	excluded_folder: [{ folder: '' }],
 };
@@ -135,7 +136,11 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 			'2. Set a tag or title that matches the note you want to move. ',
 			descEl.createEl('strong', { text: 'You can set either the tag or the title. ' }),
 			descEl.createEl('br'),
-			'3. The rules are checked in order from the top. The notes will be moved to the folder with the ',
+			'3. ',
+			descEl.createEl('strong', { text: 'Optional: ' }),
+			'Set a source folder to limit the rule to notes only in that folder. Leave empty to apply to all folders.',
+			descEl.createEl('br'),
+			'4. The rules are checked in order from the top. The notes will be moved to the folder with the ',
 			descEl.createEl('strong', { text: 'first matching rule.' }),
 			descEl.createEl('br'),
 			'Tag: Be sure to add a',
@@ -167,6 +172,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 							folder: '',
 							tag: '',
 							pattern: '',
+							source_folder: '',
 						});
 						await this.plugin.saveSettings();
 						this.display();
@@ -184,10 +190,20 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 			const s = new Setting(this.containerEl)
 				.addSearch((cb) => {
 					new FolderSuggest(this.app, cb.inputEl);
-					cb.setPlaceholder('Folder')
+					cb.setPlaceholder('Destination Folder')
 						.setValue(folder_tag_pattern.folder)
 						.onChange(async (newFolder) => {
 							this.plugin.settings.folder_tag_pattern[index].folder = newFolder.trim();
+							await this.plugin.saveSettings();
+						});
+				})
+
+				.addSearch((cb) => {
+					new FolderSuggest(this.app, cb.inputEl);
+					cb.setPlaceholder('Source Folder (optional)')
+						.setValue(folder_tag_pattern.source_folder)
+						.onChange(async (newSourceFolder) => {
+							this.plugin.settings.folder_tag_pattern[index].source_folder = newSourceFolder.trim();
 							await this.plugin.saveSettings();
 						});
 				})
