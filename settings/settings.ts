@@ -10,6 +10,7 @@ export interface FolderTagPattern {
 	tag: string;
 	pattern: string;
 	source_folder: string;
+	include_subfolders: boolean;
 }
 
 export interface ExcludedFolder {
@@ -29,7 +30,7 @@ export const DEFAULT_SETTINGS: AutoNoteMoverSettings = {
 	trigger_auto_manual: 'Automatic',
 	use_regex_to_check_for_tags: false,
 	statusBar_trigger_indicator: true,
-	folder_tag_pattern: [{ folder: '', tag: '', pattern: '', source_folder: '' }],
+	folder_tag_pattern: [{ folder: '', tag: '', pattern: '', source_folder: '', include_subfolders: false }],
 	use_regex_to_check_for_excluded_folder: false,
 	excluded_folder: [{ folder: '' }],
 };
@@ -140,7 +141,11 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 			descEl.createEl('strong', { text: 'Optional: ' }),
 			'Set a source folder to limit the rule to notes only in that folder. Leave empty to apply to all folders.',
 			descEl.createEl('br'),
-			'4. The rules are checked in order from the top. The notes will be moved to the folder with the ',
+			'4. ',
+			descEl.createEl('strong', { text: 'Include Subfolders Toggle: ' }),
+			'When enabled, the rule will also apply to notes in subfolders of the source folder.',
+			descEl.createEl('br'),
+			'5. The rules are checked in order from the top. The notes will be moved to the folder with the ',
 			descEl.createEl('strong', { text: 'first matching rule.' }),
 			descEl.createEl('br'),
 			'Tag: Be sure to add a',
@@ -173,6 +178,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 							tag: '',
 							pattern: '',
 							source_folder: '',
+							include_subfolders: false,
 						});
 						await this.plugin.saveSettings();
 						this.display();
@@ -204,6 +210,16 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 						.setValue(folder_tag_pattern.source_folder)
 						.onChange(async (newSourceFolder) => {
 							this.plugin.settings.folder_tag_pattern[index].source_folder = newSourceFolder.trim();
+							await this.plugin.saveSettings();
+						});
+				})
+
+				.addToggle((toggle) => {
+					toggle
+						.setTooltip('Include subfolders')
+						.setValue(folder_tag_pattern.include_subfolders)
+						.onChange(async (value) => {
+							this.plugin.settings.folder_tag_pattern[index].include_subfolders = value;
 							await this.plugin.saveSettings();
 						});
 				})

@@ -55,12 +55,23 @@ export default class AutoNoteMover extends Plugin {
 				const settingTag = folderTagPattern[i].tag;
 				const settingPattern = folderTagPattern[i].pattern;
 				const settingSourceFolder = folderTagPattern[i].source_folder;
+				const settingIncludeSubfolders = folderTagPattern[i].include_subfolders;
 
-				// Source folder filter check - if source folder is specified, only apply rule to notes in that folder
+				// Source folder filter check - if source folder is specified, only apply rule to notes in that folder or its subfolders
 				if (settingSourceFolder && settingSourceFolder.trim() !== '') {
 					const normalizedSourceFolder = normalizePath(settingSourceFolder.trim());
-					if (file.parent.path !== normalizedSourceFolder) {
-						continue; // Skip this rule if the note is not in the specified source folder
+					const currentFilePath = file.parent.path;
+					
+					if (settingIncludeSubfolders) {
+						// Check if the current file is in the source folder or any of its subfolders
+						if (!currentFilePath.startsWith(normalizedSourceFolder)) {
+							continue; // Skip this rule if the note is not in the specified source folder or its subfolders
+						}
+					} else {
+						// Check only exact folder match
+						if (currentFilePath !== normalizedSourceFolder) {
+							continue; // Skip this rule if the note is not in the exact specified source folder
+						}
 					}
 				}
 
