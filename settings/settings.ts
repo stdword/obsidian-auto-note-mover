@@ -48,6 +48,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 		this.containerEl.empty();
+		this.containerEl.classList.add('anm-settings')
 		this.add_auto_note_mover_setting();
 	}
 
@@ -164,7 +165,6 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 			'" in the frontmatter.'
 		);
 		new Setting(this.containerEl)
-
 			.setName('Add new rule')
 			.setDesc(ruleDesc)
 			.addButton((button: ButtonComponent) => {
@@ -194,15 +194,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 			};
 
 			const s = new Setting(this.containerEl)
-				.addSearch((cb) => {
-					new FolderSuggest(this.app, cb.inputEl);
-					cb.setPlaceholder('Destination Folder')
-						.setValue(folder_tag_pattern.folder)
-						.onChange(async (newFolder) => {
-							this.plugin.settings.folder_tag_pattern[index].folder = newFolder.trim();
-							await this.plugin.saveSettings();
-						});
-				})
+				.setClass('anm-rules')
 
 				.addSearch((cb) => {
 					new FolderSuggest(this.app, cb.inputEl);
@@ -210,6 +202,16 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 						.setValue(folder_tag_pattern.source_folder)
 						.onChange(async (newSourceFolder) => {
 							this.plugin.settings.folder_tag_pattern[index].source_folder = newSourceFolder.trim();
+							await this.plugin.saveSettings();
+						});
+				})
+
+				.addSearch((cb) => {
+					new FolderSuggest(this.app, cb.inputEl);
+					cb.setPlaceholder('Destination Folder')
+						.setValue(folder_tag_pattern.folder)
+						.onChange(async (newFolder) => {
+							this.plugin.settings.folder_tag_pattern[index].folder = newFolder.trim();
 							await this.plugin.saveSettings();
 						});
 				})
