@@ -187,10 +187,12 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 
 		this.plugin.settings.folder_tag_pattern.forEach((folder_tag_pattern, index) => {
 			const settings = this.plugin.settings.folder_tag_pattern;
-			const settingTag = settings.map((e) => e['tag']);
-			const settingPattern = settings.map((e) => e['pattern']);
-			const checkArr = (arr: string[], val: string) => {
-				return arr.some((arrVal) => val === arrVal);
+			const checkConsistencyBreak = (source_folder: string, tag: string, pattern: string) => {
+				return settings.some((e) => (
+					e['source_folder'] === source_folder &&
+					e['tag'] === tag &&
+					e['pattern'] === pattern)
+				);
 			};
 
 			const s = new Setting(this.containerEl)
@@ -201,7 +203,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 					cb.setPlaceholder('Source Folder (optional)')
 						.setValue(folder_tag_pattern.source_folder)
 						.onChange(async (newSourceFolder) => {
-							this.plugin.settings.folder_tag_pattern[index].source_folder = newSourceFolder.trim();
+							settings[index].source_folder = newSourceFolder.trim();
 							await this.plugin.saveSettings();
 						});
 				})
@@ -211,7 +213,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 					cb.setPlaceholder('Destination Folder')
 						.setValue(folder_tag_pattern.folder)
 						.onChange(async (newFolder) => {
-							this.plugin.settings.folder_tag_pattern[index].folder = newFolder.trim();
+							settings[index].folder = newFolder.trim();
 							await this.plugin.saveSettings();
 						});
 				})
@@ -221,7 +223,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 						.setTooltip('Include subfolders')
 						.setValue(folder_tag_pattern.include_subfolders)
 						.onChange(async (value) => {
-							this.plugin.settings.folder_tag_pattern[index].include_subfolders = value;
+							settings[index].include_subfolders = value;
 							await this.plugin.saveSettings();
 						});
 				})
@@ -231,18 +233,23 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 					cb.setPlaceholder('Tag')
 						.setValue(folder_tag_pattern.tag)
 						.onChange(async (newTag) => {
-							if (this.plugin.settings.folder_tag_pattern[index].pattern) {
+							const pattern = settings[index].pattern
+							if (pattern) {
 								this.display();
-								return new Notice(`You can set either the tag or the title.`);
-							}
-							if (newTag && checkArr(settingTag, newTag)) {
-								new Notice('This tag is already used.');
+								new Notice(`You can set either the tag or the title.`);
 								return;
 							}
+
+							const folder = settings[index].source_folder
+							if (newTag && checkConsistencyBreak(folder, newTag, pattern)) {
+								new Notice('This tag is already used for that folder.');
+								return;
+							}
+
 							if (!this.plugin.settings.use_regex_to_check_for_tags) {
-								this.plugin.settings.folder_tag_pattern[index].tag = newTag.trim();
+								settings[index].tag = newTag.trim();
 							} else if (this.plugin.settings.use_regex_to_check_for_tags) {
-								this.plugin.settings.folder_tag_pattern[index].tag = newTag;
+								settings[index].tag = newTag;
 							}
 							await this.plugin.saveSettings();
 						});
@@ -252,25 +259,29 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 					cb.setPlaceholder('Title by regex')
 						.setValue(folder_tag_pattern.pattern)
 						.onChange(async (newPattern) => {
-							if (this.plugin.settings.folder_tag_pattern[index].tag) {
+							const tag = settings[index].tag
+							if (tag) {
 								this.display();
-								return new Notice(`You can set either the tag or the title.`);
-							}
-
-							if (newPattern && checkArr(settingPattern, newPattern)) {
-								new Notice('This pattern is already used.');
+								new Notice(`You can set either the tag or the title.`);
 								return;
 							}
 
-							this.plugin.settings.folder_tag_pattern[index].pattern = newPattern;
+							const folder = settings[index].source_folder
+							if (newPattern && checkConsistencyBreak(folder, tag, newPattern)) {
+								new Notice('This pattern is already used for that folder.');
+								return;
+							}
+
+							settings[index].pattern = newPattern;
 							await this.plugin.saveSettings();
 						});
 				})
+
 				.addExtraButton((cb) => {
 					cb.setIcon('up-chevron-glyph')
 						.setTooltip('Move up')
 						.onClick(async () => {
-							arrayMove(this.plugin.settings.folder_tag_pattern, index, index - 1);
+							arrayMove(settings, index, index - 1);
 							await this.plugin.saveSettings();
 							this.display();
 						});
@@ -279,7 +290,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 					cb.setIcon('down-chevron-glyph')
 						.setTooltip('Move down')
 						.onClick(async () => {
-							arrayMove(this.plugin.settings.folder_tag_pattern, index, index + 1);
+							arrayMove(settings, index, index + 1);
 							await this.plugin.saveSettings();
 							this.display();
 						});
@@ -288,7 +299,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 					cb.setIcon('cross')
 						.setTooltip('Delete')
 						.onClick(async () => {
-							this.plugin.settings.folder_tag_pattern.splice(index, 1);
+							settings.splice(index, 1);
 							await this.plugin.saveSettings();
 							this.display();
 						});
