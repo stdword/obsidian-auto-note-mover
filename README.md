@@ -1,5 +1,11 @@
 # Auto Note Mover
 
+---
+> ‼️ IMPORTANT: This is the fork of the original plugin. Some bugs are fixed and some features are added.
+> 
+> You can use it with the help of the [BRAT](https://github.com/TfTHacker/obsidian42-brat) plugin. See release details via commit messages in [Releases](https://github.com/stdword/obsidian-auto-note-mover/releases) section.
+---
+
 Auto Note Mover will automatically move the active notes to their respective folders according to the rules.
 
 ## How it works
@@ -103,3 +109,4 @@ popper.js https://popper.js.org/
 
 ## Special Thanks
 Thanks to [@pjeby](https://github.com/pjeby) for his help in creating this plugin.
+
